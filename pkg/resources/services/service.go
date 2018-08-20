@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package resources
+package services
 
 import (
 	"github.com/huanwei/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
@@ -25,8 +25,13 @@ import (
 )
 
 func NewForCluster(cluster *v1alpha1.BrokerCluster) *corev1.Service {
-	port1 := corev1.ServicePort{Port: 10909}
-	port2 := corev1.ServicePort{Port: 10911}
+	var ports []corev1.ServicePort
+	ports = append(ports, corev1.ServicePort{
+		Port: 10909,
+	})
+	ports = append(ports, corev1.ServicePort{
+		Port: 10911,
+	})
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Labels:    map[string]string{constants.BrokerClusterLabel: cluster.Name},
@@ -41,13 +46,12 @@ func NewForCluster(cluster *v1alpha1.BrokerCluster) *corev1.Service {
 			},
 		},
 		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{port1, port2},
+			Ports: ports,
 			Selector: map[string]string{
 				constants.BrokerClusterLabel: cluster.Name,
 			},
 			ClusterIP: corev1.ClusterIPNone,
 		},
 	}
-
 	return svc
 }
