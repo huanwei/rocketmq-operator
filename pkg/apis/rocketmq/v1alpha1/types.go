@@ -19,10 +19,10 @@ package v1alpha1
 import corev1 "k8s.io/api/core/v1"
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-const MinimumRocketMQVersion = "4.2.0"
+const MinimumVersion = "4.2.0"
 
 type BrokerClusterSpec struct {
-	Version             string                        `json:"version"`
+	BrokerVersion       string                        `json:"brokerVersion"`
 	Namesrvs            string                        `json:"namesrvs"`
 	Members             int32                         `json:"members, omitempty"`
 	BaseBrokerID        uint32                        `json:"baseBrokerId, omitempty"`
