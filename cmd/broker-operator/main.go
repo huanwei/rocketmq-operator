@@ -1,1 +1,1 @@
-package broker_operator
+package main

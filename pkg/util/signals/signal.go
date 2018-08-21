@@ -14,20 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package statefulsets
+package signals
 
 import (
-	"github.com/huanwei/rds/pkg/apis/rds/v1alpha1"
-	apps "k8s.io/api/apps/v1beta1"
+	"context"
+	"os"
+	"os/signal"
 )
 
-type Images struct {
-	BrokerImage      string
-	BrokerAgentImage string
-}
+var onlyOneSignalHandler = make(chan struct{})
 
-func NewForCluster(cluster *v1alpha1.Cluster, images Images, serviceName string) *apps.StatefulSet {
+// SetupSignalHandler sets up a signal handler that calls the given CancelFunc
+// on SIGTERM/SIGINT. If a second signal is caught, the program is terminated
+// immediately with exit code 1.
+func SetupSignalHandler(cancelFunc context.CancelFunc) {
+	close(onlyOneSignalHandler) // panics when called twice
 
-	return nil
-
+	c := make(chan os.Signal, 2)
+	signal.Notify(c, shutdownSignals...)
+	go func() {
+		<-c
+		cancelFunc()
+		<-c
+		os.Exit(1) // second signal. Exit directly.
+	}()
 }

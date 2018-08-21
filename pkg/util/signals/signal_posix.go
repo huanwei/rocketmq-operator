@@ -1,3 +1,5 @@
+// +build !windows
+
 /*
 Copyright The Kubernetes Authors.
 
@@ -14,20 +16,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package statefulsets
+package signals
 
 import (
-	"github.com/huanwei/rds/pkg/apis/rds/v1alpha1"
-	apps "k8s.io/api/apps/v1beta1"
+	"os"
+	"syscall"
 )
 
-type Images struct {
-	BrokerImage      string
-	BrokerAgentImage string
-}
-
-func NewForCluster(cluster *v1alpha1.Cluster, images Images, serviceName string) *apps.StatefulSet {
-
-	return nil
-
-}
+var shutdownSignals = []os.Signal{os.Interrupt, syscall.SIGTERM}

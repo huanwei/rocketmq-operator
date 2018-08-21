@@ -27,6 +27,7 @@ type BrokerClusterSpec struct {
 	Members             int32                         `json:"members, omitempty"`
 	BaseBrokerID        uint32                        `json:"baseBrokerId, omitempty"`
 	ClusterMode         string                        `json:"clusterMode`
+	BrokerProperties    map[string]string             `json:"brokerProperties, omitempty"`
 	NodeSelector        map[string]string             `json:"nodeSelector, omitempty"`
 	Affinity            *corev1.Affinity              `json:"affinity, omitempty"`
 	VolumeClaimTemplate *corev1.PersistentVolumeClaim `json:"volumeClaimTemplate, omitempty"`
