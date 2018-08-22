@@ -22,12 +22,13 @@ import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 const MinimumVersion = "4.2.0"
 
 type BrokerClusterSpec struct {
-	BrokerVersion       string                        `json:"brokerVersion"`
-	Namesrvs            string                        `json:"namesrvs"`
-	Members             int32                         `json:"members, omitempty"`
-	BaseBrokerID        uint32                        `json:"baseBrokerId, omitempty"`
+	Version             string                        `json:"brokerVersion"`
+	NameServers         string                        `json:"nameServers"`
 	ClusterMode         string                        `json:"clusterMode`
-	BrokerProperties    map[string]string             `json:"brokerProperties, omitempty"`
+	ClusterName         string                        `json:"clusterName"`
+	GroupReplica        int32                         `json:"groupReplica, omitempty"`
+	MembersPerGroup     int32                         `json:"membersPerGroup, omitempty"`
+	Properties          map[string]string             `json:"properties, omitempty"`
 	NodeSelector        map[string]string             `json:"nodeSelector, omitempty"`
 	Affinity            *corev1.Affinity              `json:"affinity, omitempty"`
 	VolumeClaimTemplate *corev1.PersistentVolumeClaim `json:"volumeClaimTemplate, omitempty"`
