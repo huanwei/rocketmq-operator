@@ -35,12 +35,12 @@ type BrokerClusterSpec struct {
 	Config              *corev1.LocalObjectReference  `json:"config,omitempty"`
 }
 
-type BrokerClusterConditonType string
+type BrokerClusterConditionType string
 
-const BrokerClusterReady BrokerClusterConditonType = "Ready"
+const BrokerClusterReady BrokerClusterConditionType = "Ready"
 
 type BrokerClusterCondition struct {
-	Type               BrokerClusterConditonType
+	Type               BrokerClusterConditionType
 	Status             corev1.ConditionStatus
 	LastTransitionTime metav1.Time
 	Reason             string
