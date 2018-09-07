@@ -17,6 +17,7 @@ limitations under the License.
 package services
 
 import (
+	"fmt"
 	"github.com/huanwei/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	"github.com/huanwei/rocketmq-operator/pkg/constants"
 	corev1 "k8s.io/api/core/v1"
@@ -24,7 +25,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-func NewForCluster(cluster *v1alpha1.BrokerCluster) *corev1.Service {
+func NewHeadlessService(cluster *v1alpha1.BrokerCluster, index int) *corev1.Service {
 	var ports []corev1.ServicePort
 	ports = append(ports, corev1.ServicePort{
 		Port: 10909,
@@ -34,8 +35,12 @@ func NewForCluster(cluster *v1alpha1.BrokerCluster) *corev1.Service {
 	})
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Labels:    map[string]string{constants.BrokerClusterLabel: cluster.Name},
-			Name:      cluster.Name,
+			//Labels:    map[string]string{constants.BrokerClusterLabel: cluster.Name},
+			//Name:      cluster.Name,
+			Name: fmt.Sprintf(cluster.Spec.ClusterName+`-svc-%s`, index),
+			Labels: map[string]string{
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
+			},
 			Namespace: cluster.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(cluster, schema.GroupVersionKind{
@@ -48,7 +53,7 @@ func NewForCluster(cluster *v1alpha1.BrokerCluster) *corev1.Service {
 		Spec: corev1.ServiceSpec{
 			Ports: ports,
 			Selector: map[string]string{
-				constants.BrokerClusterLabel: cluster.Name,
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
 			},
 			ClusterIP: corev1.ClusterIPNone,
 		},

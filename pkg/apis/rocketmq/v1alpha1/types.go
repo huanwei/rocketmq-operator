@@ -19,13 +19,14 @@ package v1alpha1
 import corev1 "k8s.io/api/core/v1"
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-const MinimumVersion = "4.2.0"
+const MinimumVersion = "4.3.0"
 
 type BrokerClusterSpec struct {
 	Version             string                        `json:"brokerVersion"`
 	NameServers         string                        `json:"nameServers"`
 	ClusterMode         string                        `json:"clusterMode`
 	ClusterName         string                        `json:"clusterName"`
+	ReplicationMode     string                        `json:"replicationMode`
 	GroupReplica        int32                         `json:"groupReplica, omitempty"`
 	MembersPerGroup     int32                         `json:"membersPerGroup, omitempty"`
 	Properties          map[string]string             `json:"properties, omitempty"`

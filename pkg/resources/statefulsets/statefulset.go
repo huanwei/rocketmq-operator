@@ -17,17 +17,171 @@ limitations under the License.
 package statefulsets
 
 import (
-	"github.com/huanwei/rds/pkg/apis/rds/v1alpha1"
-	apps "k8s.io/api/apps/v1beta1"
+	"fmt"
+	"github.com/huanwei/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
+	"github.com/huanwei/rocketmq-operator/pkg/constants"
+	"k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	//"k8s.io/kubernetes/pkg/apis/apps"
+	apps "k8s.io/api/apps/v1"
+	//api "k8s.io/kubernetes/pkg/apis/core"
 )
 
-type Images struct {
-	BrokerImage      string
-	BrokerAgentImage string
+func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int, brokerImage string, serviceName string) *apps.StatefulSet {
+	//membersPerGroup := cluster.Spec.MembersPerGroup
+	containers := []v1.Container{
+		brokerContainer(cluster, index),
+	}
+
+	brokerRole := constants.BrokerRoleSlave
+	if index == 0 {
+		brokerRole = constants.BrokerRoleMaster
+	}
+	podLabels := map[string]string{
+		constants.BrokerClusterLabel: cluster.Name,
+		constants.BrokerRoleLabel:    brokerRole,
+	}
+
+	/*var podVolumes = []v1.Volume{}
+	if cluster.Spec.VolumeClaimTemplate == nil {
+		podVolumes = append(podVolumes, v1.Volume{
+			Name: "brokeroptlogs",
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: &v1.EmptyDirVolumeSource{
+					Medium: "",
+				},
+			},
+		})
+		podVolumes = append(podVolumes, v1.Volume{
+			Name: "brokeroptstore",
+			VolumeSource: v1.VolumeSource{
+				EmptyDir: &v1.EmptyDirVolumeSource{
+					Medium: "",
+				},
+			},
+		})
+	}*/
+
+	ssReplicas := int32(cluster.Spec.MembersPerGroup)
+	ss := &apps.StatefulSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Namespace: cluster.Namespace,
+			Name:      cluster.Name,
+			OwnerReferences: []metav1.OwnerReference{
+				*metav1.NewControllerRef(cluster, schema.GroupVersionKind{
+					Group:   v1alpha1.SchemeGroupVersion.Group,
+					Version: v1alpha1.SchemeGroupVersion.Version,
+					Kind:    v1alpha1.ClusterCRDResourceKind,
+				}),
+			},
+			Labels: map[string]string{
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
+			},
+		},
+		Spec: apps.StatefulSetSpec{
+			Replicas: &ssReplicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: map[string]string{
+					constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
+				},
+			},
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: podLabels,
+				},
+				Spec: v1.PodSpec{
+					//ServiceAccountName: "rocketmq-operator",
+					NodeSelector: cluster.Spec.NodeSelector,
+					//Affinity:     cluster.Spec.Affinity,
+					Containers: containers,
+					//Volumes: podVolumes,
+					Volumes: []v1.Volume{
+						{
+							Name: "brokeroptlogs",
+							VolumeSource: v1.VolumeSource{
+								HostPath: &v1.HostPathVolumeSource{
+									Path: fmt.Sprintf("/data/broker/logs/%s", index),
+								},
+							},
+						},
+						{
+							Name: "brokeroptstore",
+							VolumeSource: v1.VolumeSource{
+								HostPath: &v1.HostPathVolumeSource{
+									Path: fmt.Sprintf("/data/broker/store/%s", index),
+								},
+							},
+						},
+					},
+				},
+			},
+			//ServiceName: serviceName,
+			ServiceName: fmt.Sprintf(cluster.Spec.ClusterName+`-svc-%s`, index),
+		},
+	}
+	return ss
+
 }
 
-func NewForCluster(cluster *v1alpha1.Cluster, images Images, serviceName string) *apps.StatefulSet {
-
-	return nil
+func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
+	return v1.Container{
+		Name:            "broker",
+		ImagePullPolicy: "Always",
+		Image:           fmt.Sprintf("%s:%s", "huanwei/rocketmq-broker", "4.3.0-operator"),
+		Ports: []v1.ContainerPort{
+			{
+				ContainerPort: 10909,
+			},
+			{
+				ContainerPort: 10911,
+			},
+		},
+		Env: []v1.EnvVar{
+			{
+				Name:  "ROCKETMQ_VERSION",
+				Value: cluster.Spec.Version,
+			},
+			{
+				Name:  "DELETE_WHEN",
+				Value: cluster.Spec.Properties["DELETE_WHEN"],
+			},
+			{
+				Name:  "FILE_RESERVED_TIME",
+				Value: cluster.Spec.Properties["FILE_RESERVED_TIME"],
+			},
+			{
+				Name:  "CLUSTER_MODE",
+				Value: cluster.Spec.ClusterMode,
+			},
+			{
+				Name:  "BROKER_NAME",
+				Value: fmt.Sprintf(`broker-%s`, index),
+			},
+			{
+				Name:  "REPLICATION_MODE",
+				Value: cluster.Spec.ReplicationMode,
+			},
+			{
+				Name:  "FLUSH_DISK_TYPE",
+				Value: cluster.Spec.Properties["FLUSH_DISK_TYPE"],
+			},
+			{
+				Name:  "NAMESRV_ADDRESS",
+				Value: cluster.Spec.NameServers,
+			},
+		},
+		Command: []string{"./brokerStart.sh"},
+		VolumeMounts: []v1.VolumeMount{
+			{
+				Name:      "brokeroptlogs",
+				MountPath: "/opt/logs",
+			},
+			{
+				Name:      "brokeroptstore",
+				MountPath: "/opt/store",
+			},
+		},
+	}
 
 }

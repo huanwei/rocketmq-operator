@@ -586,11 +586,14 @@ func wrapN(i, slop int, s string) (string, string) {
 		return s, ""
 	}
 
-	w := strings.LastIndexAny(s[:i], " \t")
+	w := strings.LastIndexAny(s[:i], " \t\n")
 	if w <= 0 {
 		return s, ""
 	}
-
+	nlPos := strings.LastIndex(s[:i], "\n")
+	if nlPos > 0 && nlPos < w {
+		return s[:nlPos], s[nlPos+1:]
+	}
 	return s[:w], s[w+1:]
 }
 
@@ -599,7 +602,7 @@ func wrapN(i, slop int, s string) (string, string) {
 // caller). Pass `w` == 0 to do no wrapping
 func wrap(i, w int, s string) string {
 	if w == 0 {
-		return s
+		return strings.Replace(s, "\n", "\n"+strings.Repeat(" ", i), -1)
 	}
 
 	// space between indent i and end of line width w into which
@@ -617,7 +620,7 @@ func wrap(i, w int, s string) string {
 	}
 	// If still not enough space then don't even try to wrap.
 	if wrap < 24 {
-		return s
+		return strings.Replace(s, "\n", r, -1)
 	}
 
 	// Try to avoid short orphan words on the final line, by
@@ -629,14 +632,14 @@ func wrap(i, w int, s string) string {
 	// Handle first line, which is indented by the caller (or the
 	// special case above)
 	l, s = wrapN(wrap, slop, s)
-	r = r + l
+	r = r + strings.Replace(l, "\n", "\n"+strings.Repeat(" ", i), -1)
 
 	// Now wrap the rest
 	for s != "" {
 		var t string
 
 		t, s = wrapN(wrap, slop, s)
-		r = r + "\n" + strings.Repeat(" ", i) + t
+		r = r + "\n" + strings.Repeat(" ", i) + strings.Replace(t, "\n", "\n"+strings.Repeat(" ", i), -1)
 	}
 
 	return r
