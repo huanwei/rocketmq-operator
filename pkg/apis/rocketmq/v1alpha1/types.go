@@ -19,26 +19,29 @@ package v1alpha1
 import corev1 "k8s.io/api/core/v1"
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-const MinimumVersion = "4.2.0"
+const MinimumVersion = "4.3.0"
 
 type BrokerClusterSpec struct {
-	BrokerVersion       string                        `json:"brokerVersion"`
-	Namesrvs            string                        `json:"namesrvs"`
-	Members             int32                         `json:"members, omitempty"`
-	BaseBrokerID        uint32                        `json:"baseBrokerId, omitempty"`
+	Version             string                        `json:"brokerVersion"`
+	NameServers         string                        `json:"nameServers"`
 	ClusterMode         string                        `json:"clusterMode`
+	ClusterName         string                        `json:"clusterName"`
+	ReplicationMode     string                        `json:"replicationMode`
+	GroupReplica        int32                         `json:"groupReplica, omitempty"`
+	MembersPerGroup     int32                         `json:"membersPerGroup, omitempty"`
+	Properties          map[string]string             `json:"properties, omitempty"`
 	NodeSelector        map[string]string             `json:"nodeSelector, omitempty"`
 	Affinity            *corev1.Affinity              `json:"affinity, omitempty"`
 	VolumeClaimTemplate *corev1.PersistentVolumeClaim `json:"volumeClaimTemplate, omitempty"`
 	Config              *corev1.LocalObjectReference  `json:"config,omitempty"`
 }
 
-type BrokerClusterConditonType string
+type BrokerClusterConditionType string
 
-const BrokerClusterReady BrokerClusterConditonType = "Ready"
+const BrokerClusterReady BrokerClusterConditionType = "Ready"
 
 type BrokerClusterCondition struct {
-	Type               BrokerClusterConditonType
+	Type               BrokerClusterConditionType
 	Status             corev1.ConditionStatus
 	LastTransitionTime metav1.Time
 	Reason             string
