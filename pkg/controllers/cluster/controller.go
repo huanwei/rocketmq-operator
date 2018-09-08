@@ -132,7 +132,7 @@ type BrokerController struct {
 	recorder record.EventRecorder
 }
 
-// NewController creates a new BrokerController.
+// NewBrokerController creates a new BrokerController.
 func NewBrokerController(
 	opConfig operatoropts.OperatorOpts,
 	opClient clientset.Interface,
@@ -258,7 +258,6 @@ func (m *BrokerController) runWorker() {
 // attempt to process it, by calling the syncHandler.
 func (m *BrokerController) processNextWorkItem() bool {
 	obj, shutdown := m.queue.Get()
-
 	if shutdown {
 		return false
 	}
@@ -350,6 +349,17 @@ func (m *BrokerController) syncHandler(key string) error {
 		utilruntime.HandleError(fmt.Errorf("invalid membersPerGroup %s", membersPerGroup))
 		return nil
 	}
+	if cluster.Spec.ClusterMode == "" {
+		cluster.Spec.ClusterMode = "ALL-MASTER"
+	}
+	if cluster.Spec.ClusterMode == "ALL-MASTER" {
+		cluster.Spec.MembersPerGroup = 1
+	}
+	/*membersPerGroup := 1
+	if cluster.Spec.ClusterMode != "ALL-MASTER" && cluster.Spec.MembersPerGroup != nil{
+		membersPerGroup := int(cluster.Spec.MembersPerGroup)
+	}*/
+
 	readyGroups := 0
 	readyMembers := 0
 	for index := 0; index < groupReplica; index++ {

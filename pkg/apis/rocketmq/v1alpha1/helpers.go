@@ -17,10 +17,15 @@ limitations under the License.
 package v1alpha1
 
 const (
-	// The default rocketmq version to use if not specified explicitly by user
 	defaultVersion = "4.3.0-operator"
 	defaultGroups  = 2
 	defaultMembers = 2
+
+	defaultDeleteWhen       = "04"
+	defaultFileReservedTime = "48"
+	defaultClusterMode      = "ALL-MASTER"
+	defaultReplicationMode  = "SYNC"
+	defaultFlushDiskType    = "ASYNC_FLUSH"
 )
 
 // EnsureDefaults will ensure that if a user omits and fields in the
@@ -37,6 +42,24 @@ func (c *BrokerCluster) EnsureDefaults() *BrokerCluster {
 
 	if c.Spec.MembersPerGroup == 0 {
 		c.Spec.MembersPerGroup = defaultMembers
+	}
+	if c.Spec.Properties == nil {
+		c.Spec.Properties = map[string]string{}
+	}
+	if c.Spec.Properties["DELETE_WHEN"] == "" {
+		c.Spec.Properties["DELETE_WHEN"] = defaultDeleteWhen
+	}
+	if c.Spec.Properties["FILE_RESERVED_TIME"] == "" {
+		c.Spec.Properties["FILE_RESERVED_TIME"] = defaultFileReservedTime
+	}
+	if c.Spec.Properties["CLUSTER_MODE"] == "" {
+		c.Spec.Properties["CLUSTER_MODE"] = defaultClusterMode
+	}
+	if c.Spec.Properties["REPLICATION_MODE"] == "" {
+		c.Spec.Properties["REPLICATION_MODE"] = defaultReplicationMode
+	}
+	if c.Spec.Properties["FLUSH_DISK_TYPE"] == "" {
+		c.Spec.Properties["FLUSH_DISK_TYPE"] = defaultFlushDiskType
 	}
 	return c
 }
