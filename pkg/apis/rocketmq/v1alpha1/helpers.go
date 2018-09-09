@@ -23,7 +23,6 @@ const (
 
 	defaultDeleteWhen       = "04"
 	defaultFileReservedTime = "48"
-	defaultClusterMode      = "ALL-MASTER"
 	defaultReplicationMode  = "SYNC"
 	defaultFlushDiskType    = "ASYNC_FLUSH"
 )
@@ -52,9 +51,7 @@ func (c *BrokerCluster) EnsureDefaults() *BrokerCluster {
 	if c.Spec.Properties["FILE_RESERVED_TIME"] == "" {
 		c.Spec.Properties["FILE_RESERVED_TIME"] = defaultFileReservedTime
 	}
-	if c.Spec.Properties["CLUSTER_MODE"] == "" {
-		c.Spec.Properties["CLUSTER_MODE"] = defaultClusterMode
-	}
+
 	if c.Spec.Properties["REPLICATION_MODE"] == "" {
 		c.Spec.Properties["REPLICATION_MODE"] = defaultReplicationMode
 	}

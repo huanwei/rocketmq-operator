@@ -23,6 +23,7 @@ import (
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"strconv"
 	//"k8s.io/kubernetes/pkg/apis/apps"
 	apps "k8s.io/api/apps/v1"
 	//api "k8s.io/kubernetes/pkg/apis/core"
@@ -76,14 +77,14 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int, brokerImage stri
 				}),
 			},
 			Labels: map[string]string{
-				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
 			},
 		},
 		Spec: apps.StatefulSetSpec{
 			Replicas: &ssReplicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
+					constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
 				},
 			},
 			Template: v1.PodTemplateSpec{
@@ -117,7 +118,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int, brokerImage stri
 				},
 			},
 			//ServiceName: serviceName,
-			ServiceName: fmt.Sprintf(cluster.Spec.ClusterName+`-svc-%s`, index),
+			ServiceName: fmt.Sprintf(cluster.Name+`-svc-%s`, index),
 		},
 	}
 	return ss
@@ -151,8 +152,8 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 				Value: cluster.Spec.Properties["FILE_RESERVED_TIME"],
 			},
 			{
-				Name:  "CLUSTER_MODE",
-				Value: cluster.Spec.ClusterMode,
+				Name:  "ALL_MASTER",
+				Value: strconv.FormatBool(cluster.Spec.AllMaster),
 			},
 			{
 				Name:  "BROKER_NAME",

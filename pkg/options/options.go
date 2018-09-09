@@ -60,9 +60,6 @@ type OperatorOpts struct {
 	// Images defines the 'broker' and 'broker-agent' images to use.
 	Images Images `yaml:"images"`
 
-	// NameServers address
-	NameServers string `yaml:"nameservers"`
-
 	// minResyncPeriod is the resync period in reflectors; will be random
 	// between minResyncPeriod and 2*minResyncPeriod.
 	MinResyncPeriod metav1.Duration `yaml:"minResyncPeriod"`
