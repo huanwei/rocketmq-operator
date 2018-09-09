@@ -37,9 +37,9 @@ func NewHeadlessService(cluster *v1alpha1.BrokerCluster, index int) *corev1.Serv
 		ObjectMeta: metav1.ObjectMeta{
 			//Labels:    map[string]string{constants.BrokerClusterLabel: cluster.Name},
 			//Name:      cluster.Name,
-			Name: fmt.Sprintf(cluster.Spec.ClusterName+`-svc-%s`, index),
+			Name: fmt.Sprintf(cluster.Name+`-svc-%s`, index),
 			Labels: map[string]string{
-				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
 			},
 			Namespace: cluster.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
@@ -53,7 +53,7 @@ func NewHeadlessService(cluster *v1alpha1.BrokerCluster, index int) *corev1.Serv
 		Spec: corev1.ServiceSpec{
 			Ports: ports,
 			Selector: map[string]string{
-				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
 			},
 			ClusterIP: corev1.ClusterIPNone,
 		},

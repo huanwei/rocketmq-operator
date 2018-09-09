@@ -17,13 +17,12 @@ limitations under the License.
 package v1alpha1
 
 const (
-	defaultVersion = "4.3.0-operator"
-	defaultGroups  = 2
-	defaultMembers = 2
+	defaultBrokerImage     = "huanwei/rocketmq-broker:4.3.0-operator"
+	defaultGroups          = 2
+	defaultMembersPerGroup = 2
 
 	defaultDeleteWhen       = "04"
 	defaultFileReservedTime = "48"
-	defaultClusterMode      = "ALL-MASTER"
 	defaultReplicationMode  = "SYNC"
 	defaultFlushDiskType    = "ASYNC_FLUSH"
 )
@@ -33,15 +32,15 @@ const (
 // For example a user can choose to omit the version
 // and number of members.
 func (c *BrokerCluster) EnsureDefaults() *BrokerCluster {
-	if c.Spec.Version == "" {
-		c.Spec.Version = defaultVersion
+	if c.Spec.BrokerImage == "" {
+		c.Spec.BrokerImage = defaultBrokerImage
 	}
 	if c.Spec.GroupReplica == 0 {
 		c.Spec.GroupReplica = defaultGroups
 	}
 
 	if c.Spec.MembersPerGroup == 0 {
-		c.Spec.MembersPerGroup = defaultMembers
+		c.Spec.MembersPerGroup = defaultMembersPerGroup
 	}
 	if c.Spec.Properties == nil {
 		c.Spec.Properties = map[string]string{}
@@ -52,9 +51,7 @@ func (c *BrokerCluster) EnsureDefaults() *BrokerCluster {
 	if c.Spec.Properties["FILE_RESERVED_TIME"] == "" {
 		c.Spec.Properties["FILE_RESERVED_TIME"] = defaultFileReservedTime
 	}
-	if c.Spec.Properties["CLUSTER_MODE"] == "" {
-		c.Spec.Properties["CLUSTER_MODE"] = defaultClusterMode
-	}
+
 	if c.Spec.Properties["REPLICATION_MODE"] == "" {
 		c.Spec.Properties["REPLICATION_MODE"] = defaultReplicationMode
 	}

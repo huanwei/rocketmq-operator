@@ -316,12 +316,8 @@ func (m *BrokerController) syncHandler(key string) error {
 
 	// sync cluster
 	groupReplica := int(cluster.Spec.GroupReplica)
-	if groupReplica == 0 {
-		utilruntime.HandleError(fmt.Errorf("invalid groupReplica %s", groupReplica))
-		return nil
-	}
 	for index := 0; index < groupReplica; index++ {
-		svc, err := m.serviceLister.Services(cluster.Namespace).Get(fmt.Sprintf(cluster.Spec.ClusterName+`-svc-%s`, index))
+		svc, err := m.serviceLister.Services(cluster.Namespace).Get(fmt.Sprintf(cluster.Name+`-svc-%s`, index))
 		// If the resource doesn't exist, we'll create it
 		if apierrors.IsNotFound(err) {
 			glog.V(2).Infof("Creating a new Service for cluster %q", nsName)
@@ -349,10 +345,8 @@ func (m *BrokerController) syncHandler(key string) error {
 		utilruntime.HandleError(fmt.Errorf("invalid membersPerGroup %s", membersPerGroup))
 		return nil
 	}
-	if cluster.Spec.ClusterMode == "" {
-		cluster.Spec.ClusterMode = "ALL-MASTER"
-	}
-	if cluster.Spec.ClusterMode == "ALL-MASTER" {
+
+	if cluster.Spec.AllMaster {
 		cluster.Spec.MembersPerGroup = 1
 	}
 	/*membersPerGroup := 1
@@ -363,11 +357,11 @@ func (m *BrokerController) syncHandler(key string) error {
 	readyGroups := 0
 	readyMembers := 0
 	for index := 0; index < groupReplica; index++ {
-		ss, err := m.statefulSetLister.StatefulSets(cluster.Namespace).Get(fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index))
+		ss, err := m.statefulSetLister.StatefulSets(cluster.Namespace).Get(fmt.Sprintf(cluster.Name+`-%s`, index))
 		// If the resource doesn't exist, we'll create it
 		if apierrors.IsNotFound(err) {
 			glog.V(2).Infof("Creating a new StatefulSet for cluster %q", nsName)
-			ss = statefulsets.NewStatefulSet(cluster, index, "", "")
+			ss = statefulsets.NewStatefulSet(cluster, index)
 			err = m.statefulSetControl.CreateStatefulSet(ss)
 		}
 		// If an error occurs during Get/Create, we'll requeue the item so we can
@@ -393,7 +387,7 @@ func (m *BrokerController) syncHandler(key string) error {
 			glog.V(4).Infof("Updating %q: membersPerGroup=%d statefulSetReplicas=%d",
 				nsName, cluster.Spec.MembersPerGroup, ss.Spec.Replicas)
 			old := ss.DeepCopy()
-			ss = statefulsets.NewStatefulSet(cluster, index, "", "")
+			ss = statefulsets.NewStatefulSet(cluster, index)
 			if err := m.statefulSetControl.Patch(old, ss); err != nil {
 				// Requeue the item so we can attempt processing again later.
 				// This could have been caused by a temporary network failure etc.

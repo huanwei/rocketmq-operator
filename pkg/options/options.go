@@ -30,16 +30,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const (
-	defaultBrokerImage = "huanwei/rocketmq-broker"
-)
-
-// Images is the configuration of required Operator images. Remember to configure the appropriate
-// credentials for the target repositories.
-type Images struct {
-	BrokerImage string `yaml:"brokerimage"`
-}
-
 // OperatorOpts holds the options for the Operator.
 type OperatorOpts struct {
 	// KubeConfig is the path to a kubeconfig file, specifying how to connect to
@@ -56,12 +46,6 @@ type OperatorOpts struct {
 
 	// Hostname of the pod the operator is running in.
 	Hostname string `yaml:"hostname"`
-
-	// Images defines the 'broker' and 'broker-agent' images to use.
-	Images Images `yaml:"images"`
-
-	// NameServers address
-	NameServers string `yaml:"nameservers"`
 
 	// minResyncPeriod is the resync period in reflectors; will be random
 	// between minResyncPeriod and 2*minResyncPeriod.
@@ -106,12 +90,12 @@ func (s *OperatorOpts) EnsureDefaults() {
 		}
 		s.Hostname = hostname
 	}
-	if &s.Images == nil {
+	/*if &s.Images == nil {
 		s.Images = Images{}
 	}
 	if s.Images.BrokerImage == "" {
 		s.Images.BrokerImage = defaultBrokerImage
-	}
+	}*/
 	if s.MinResyncPeriod.Duration <= 0 {
 		s.MinResyncPeriod = metav1.Duration{Duration: 12 * time.Hour}
 	}
@@ -122,7 +106,7 @@ func (s *OperatorOpts) AddFlags(fs *pflag.FlagSet) *pflag.FlagSet {
 	fs.StringVar(&s.KubeConfig, "kubeconfig", s.KubeConfig, "Path to Kubeconfig file with authorization and master location information.")
 	fs.StringVar(&s.Master, "master", s.Master, "The address of the Kubernetes API server (overrides any value in kubeconfig).")
 	fs.StringVar(&s.Namespace, "namespace", metav1.NamespaceAll, "The namespace for which the operator manages Rocketmq clusters. Defaults to all.")
-	fs.StringVar(&s.Images.BrokerImage, "brokerimage", s.Images.BrokerImage, "The name of the target 'broker' image. Defaults to: huanwei/rocketmq-broker.")
+	//fs.StringVar(&s.Images.BrokerImage, "brokerimage", s.Images.BrokerImage, "The name of the target 'broker' image. Defaults to: huanwei/rocketmq-broker.")
 	fs.DurationVar(&s.MinResyncPeriod.Duration, "min-resync-period", s.MinResyncPeriod.Duration, "The resync period in reflectors will be random between MinResyncPeriod and 2*MinResyncPeriod.")
 	return fs
 }

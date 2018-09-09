@@ -20,16 +20,14 @@ import (
 	"fmt"
 	"github.com/huanwei/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	"github.com/huanwei/rocketmq-operator/pkg/constants"
+	apps "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	//"k8s.io/kubernetes/pkg/apis/apps"
-	apps "k8s.io/api/apps/v1"
-	//api "k8s.io/kubernetes/pkg/apis/core"
+	"strconv"
 )
 
-func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int, brokerImage string, serviceName string) *apps.StatefulSet {
-	//membersPerGroup := cluster.Spec.MembersPerGroup
+func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSet {
 	containers := []v1.Container{
 		brokerContainer(cluster, index),
 	}
@@ -76,14 +74,14 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int, brokerImage stri
 				}),
 			},
 			Labels: map[string]string{
-				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
 			},
 		},
 		Spec: apps.StatefulSetSpec{
 			Replicas: &ssReplicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					constants.BrokerClusterLabel: fmt.Sprintf(cluster.Spec.ClusterName+`-%s`, index),
+					constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
 				},
 			},
 			Template: v1.PodTemplateSpec{
@@ -116,8 +114,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int, brokerImage stri
 					},
 				},
 			},
-			//ServiceName: serviceName,
-			ServiceName: fmt.Sprintf(cluster.Spec.ClusterName+`-svc-%s`, index),
+			ServiceName: fmt.Sprintf(cluster.Name+`-svc-%s`, index),
 		},
 	}
 	return ss
@@ -128,7 +125,7 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 	return v1.Container{
 		Name:            "broker",
 		ImagePullPolicy: "Always",
-		Image:           fmt.Sprintf("%s:%s", "huanwei/rocketmq-broker", "4.3.0-operator"),
+		Image:           cluster.Spec.BrokerImage,
 		Ports: []v1.ContainerPort{
 			{
 				ContainerPort: 10909,
@@ -139,10 +136,6 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 		},
 		Env: []v1.EnvVar{
 			{
-				Name:  "ROCKETMQ_VERSION",
-				Value: cluster.Spec.Version,
-			},
-			{
 				Name:  "DELETE_WHEN",
 				Value: cluster.Spec.Properties["DELETE_WHEN"],
 			},
@@ -151,8 +144,8 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 				Value: cluster.Spec.Properties["FILE_RESERVED_TIME"],
 			},
 			{
-				Name:  "CLUSTER_MODE",
-				Value: cluster.Spec.ClusterMode,
+				Name:  "ALL_MASTER",
+				Value: strconv.FormatBool(cluster.Spec.AllMaster),
 			},
 			{
 				Name:  "BROKER_NAME",
