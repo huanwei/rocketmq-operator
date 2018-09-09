@@ -10,12 +10,11 @@ import (
 )
 
 const (
-	configPath = "/etc/rocketmq-operator/broker-config.yaml"
+	configPath = "/etc/rocketmq-operator/operator-config.yaml"
 )
 
 func main() {
 	fmt.Fprintf(os.Stderr, "Starting rocketmq-operator version '%s'\n", version.GetBuildVersion())
-
 	opts, err := operatoropts.NewOperatorOpts(configPath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error reading config: %v\n", err)

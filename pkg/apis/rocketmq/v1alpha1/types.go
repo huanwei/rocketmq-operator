@@ -20,7 +20,7 @@ import corev1 "k8s.io/api/core/v1"
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 type BrokerClusterSpec struct {
-	Version             string                        `json:"brokerVersion"`
+	BrokerImage         string                        `json:"brokerImage"`
 	NameServers         string                        `json:"nameServers"`
 	AllMaster           bool                          `json:"allMaster`
 	ReplicationMode     string                        `json:"replicationMode`
