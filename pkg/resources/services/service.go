@@ -29,17 +29,19 @@ func NewHeadlessService(cluster *v1alpha1.BrokerCluster, index int) *corev1.Serv
 	var ports []corev1.ServicePort
 	ports = append(ports, corev1.ServicePort{
 		Port: 10909,
+		Name: "port10909",
 	})
 	ports = append(ports, corev1.ServicePort{
 		Port: 10911,
+		Name: "port10911",
 	})
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			//Labels:    map[string]string{constants.BrokerClusterLabel: cluster.Name},
 			//Name:      cluster.Name,
-			Name: fmt.Sprintf(cluster.Name+`-svc-%s`, index),
+			Name: fmt.Sprintf(cluster.Name+`-svc-%d`, index),
 			Labels: map[string]string{
-				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
 			},
 			Namespace: cluster.Namespace,
 			OwnerReferences: []metav1.OwnerReference{
@@ -53,7 +55,7 @@ func NewHeadlessService(cluster *v1alpha1.BrokerCluster, index int) *corev1.Serv
 		Spec: corev1.ServiceSpec{
 			Ports: ports,
 			Selector: map[string]string{
-				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
 			},
 			ClusterIP: corev1.ClusterIPNone,
 		},

@@ -37,7 +37,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 		brokerRole = constants.BrokerRoleMaster
 	}
 	podLabels := map[string]string{
-		constants.BrokerClusterLabel: cluster.Name,
+		constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
 		constants.BrokerRoleLabel:    brokerRole,
 	}
 
@@ -73,15 +73,17 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 					Kind:    v1alpha1.ClusterCRDResourceKind,
 				}),
 			},
+			Labels: podLabels,
 			Labels: map[string]string{
-				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
+				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
 			},
 		},
 		Spec: apps.StatefulSetSpec{
 			Replicas: &ssReplicas,
 			Selector: &metav1.LabelSelector{
+				MatchLabels: podLabels,
 				MatchLabels: map[string]string{
-					constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%s`, index),
+					constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
 				},
 			},
 			Template: v1.PodTemplateSpec{
@@ -99,7 +101,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 							Name: "brokeroptlogs",
 							VolumeSource: v1.VolumeSource{
 								HostPath: &v1.HostPathVolumeSource{
-									Path: fmt.Sprintf("/data/broker/logs/%s", index),
+									Path: fmt.Sprintf("/data/broker/logs/%d", index),
 								},
 							},
 						},
@@ -107,14 +109,14 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 							Name: "brokeroptstore",
 							VolumeSource: v1.VolumeSource{
 								HostPath: &v1.HostPathVolumeSource{
-									Path: fmt.Sprintf("/data/broker/store/%s", index),
+									Path: fmt.Sprintf("/data/broker/store/%d", index),
 								},
 							},
 						},
 					},
 				},
 			},
-			ServiceName: fmt.Sprintf(cluster.Name+`-svc-%s`, index),
+			ServiceName: fmt.Sprintf(cluster.Name+`-svc-%d`, index),
 		},
 	}
 	return ss
@@ -149,7 +151,7 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 			},
 			{
 				Name:  "BROKER_NAME",
-				Value: fmt.Sprintf(`broker-%s`, index),
+				Value: fmt.Sprintf(`broker-%d`, index),
 			},
 			{
 				Name:  "REPLICATION_MODE",
