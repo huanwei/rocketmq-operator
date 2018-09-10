@@ -65,7 +65,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 	ss := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: cluster.Namespace,
-			Name:      cluster.Name,
+			Name:      fmt.Sprintf(cluster.Name+`-%d`, index),
 			OwnerReferences: []metav1.OwnerReference{
 				*metav1.NewControllerRef(cluster, schema.GroupVersionKind{
 					Group:   v1alpha1.SchemeGroupVersion.Group,
@@ -74,17 +74,11 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 				}),
 			},
 			Labels: podLabels,
-			Labels: map[string]string{
-				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
-			},
 		},
 		Spec: apps.StatefulSetSpec{
 			Replicas: &ssReplicas,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: podLabels,
-				MatchLabels: map[string]string{
-					constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
-				},
 			},
 			Template: v1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
