@@ -317,7 +317,7 @@ func (m *BrokerController) syncHandler(key string) error {
 	// sync cluster
 	groupReplica := int(cluster.Spec.GroupReplica)
 	for index := 0; index < groupReplica; index++ {
-		svc, err := m.serviceLister.Services(cluster.Namespace).Get(fmt.Sprintf(cluster.Name+`-svc-%s`, index))
+		svc, err := m.serviceLister.Services(cluster.Namespace).Get(fmt.Sprintf(cluster.Name+`-svc-%d`, index))
 		// If the resource doesn't exist, we'll create it
 		if apierrors.IsNotFound(err) {
 			glog.V(2).Infof("Creating a new Service for cluster %q", nsName)
@@ -357,7 +357,7 @@ func (m *BrokerController) syncHandler(key string) error {
 	readyGroups := 0
 	readyMembers := 0
 	for index := 0; index < groupReplica; index++ {
-		ss, err := m.statefulSetLister.StatefulSets(cluster.Namespace).Get(fmt.Sprintf(cluster.Name+`-%s`, index))
+		ss, err := m.statefulSetLister.StatefulSets(cluster.Namespace).Get(fmt.Sprintf(cluster.Name+`-%d`, index))
 		// If the resource doesn't exist, we'll create it
 		if apierrors.IsNotFound(err) {
 			glog.V(2).Infof("Creating a new StatefulSet for cluster %q", nsName)
