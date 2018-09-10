@@ -37,7 +37,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 		brokerRole = constants.BrokerRoleMaster
 	}
 	podLabels := map[string]string{
-		constants.BrokerClusterLabel: cluster.Name,
+		constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
 		constants.BrokerRoleLabel:    brokerRole,
 	}
 
@@ -73,6 +73,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 					Kind:    v1alpha1.ClusterCRDResourceKind,
 				}),
 			},
+			Labels: podLabels,
 			Labels: map[string]string{
 				constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
 			},
@@ -80,6 +81,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 		Spec: apps.StatefulSetSpec{
 			Replicas: &ssReplicas,
 			Selector: &metav1.LabelSelector{
+				MatchLabels: podLabels,
 				MatchLabels: map[string]string{
 					constants.BrokerClusterLabel: fmt.Sprintf(cluster.Name+`-%d`, index),
 				},

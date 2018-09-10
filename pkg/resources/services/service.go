@@ -29,9 +29,11 @@ func NewHeadlessService(cluster *v1alpha1.BrokerCluster, index int) *corev1.Serv
 	var ports []corev1.ServicePort
 	ports = append(ports, corev1.ServicePort{
 		Port: 10909,
+		Name: "port10909",
 	})
 	ports = append(ports, corev1.ServicePort{
 		Port: 10911,
+		Name: "port10911",
 	})
 	svc := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
