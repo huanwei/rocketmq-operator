@@ -164,11 +164,11 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 		VolumeMounts: []v1.VolumeMount{
 			{
 				Name:      "brokeroptlogs",
-				MountPath: "/opt/logs",
+				MountPath: "/root/logs",
 			},
 			{
 				Name:      "brokeroptstore",
-				MountPath: "/opt/store",
+				MountPath: "/root/store",
 			},
 		},
 	}

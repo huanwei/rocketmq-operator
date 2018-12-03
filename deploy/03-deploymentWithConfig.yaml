@@ -6,7 +6,7 @@ metadata:
   namespace: rocketmq-operator
   labels:
     app: rocketmq-operator
-    release: "0.1"
+    release: "0.1.1"
 data:
   operator-config.yaml: |
     #namespace: rocketmq-operator
@@ -17,7 +17,7 @@ metadata:
   name: rocketmq-operator
   namespace: rocketmq-operator
   labels:
-    release: "0.1"
+    release: "0.1.1"
     app: rocketmq-operator
 spec:
   replicas: 1
@@ -39,7 +39,7 @@ spec:
       containers:
       - name: rocketmq-operator-controller
         imagePullPolicy: Always
-        image: huanwei/rocketmq-operator:0.1
+        image: huanwei/rocketmq-operator:0.1.1
         ports:
         - containerPort: 10254
         volumeMounts:
