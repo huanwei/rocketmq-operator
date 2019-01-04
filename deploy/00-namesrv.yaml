@@ -20,14 +20,14 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: namesrv
-        image: huanwei/rocketmq-namesrv:4.3.0-k8s
+        image: huanwei/rocketmq:4.3.0
         imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 9876
         volumeMounts:
-          - mountPath: /opt/logs
+          - mountPath: /root/logs
             name: namesrvoptlogs
-          - mountPath: /opt/store
+          - mountPath: /root/store
             name: namesrvoptstore
       volumes:
       - name: namesrvoptlogs
