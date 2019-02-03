@@ -1,4 +1,3 @@
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -20,21 +19,20 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: namesrv
-        image: huanwei/rocketmq:4.3.2
-        command: ["sh","mqnamesrv"]
-        imagePullPolicy: Always
+        image: huanwei/rocketmq-namesrv:4.3.0-k8s
+        imagePullPolicy: IfNotPresent
         ports:
           - containerPort: 9876
         volumeMounts:
-          - mountPath: /root/logs
-            name: namesrvlogs
-          - mountPath: /root/store
-            name: namesrvstore
+          - mountPath: /opt/logs
+            name: namesrvoptlogs
+          - mountPath: /opt/store
+            name: namesrvoptstore
       volumes:
-      - name: namesrvlogs
+      - name: namesrvoptlogs
         hostPath:
           path: /data/namesrv/logs
-      - name: namesrvstore
+      - name: namesrvoptstore
         hostPath:
           path: /data/namesrv/store
       nodeSelector:

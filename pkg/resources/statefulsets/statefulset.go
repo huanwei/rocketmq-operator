@@ -23,6 +23,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"strconv"
 )
@@ -41,25 +42,21 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 		constants.BrokerRoleLabel:    brokerRole,
 	}
 
-	/*var podVolumes = []v1.Volume{}
-	if cluster.Spec.VolumeClaimTemplate == nil {
-		podVolumes = append(podVolumes, v1.Volume{
-			Name: "brokeroptlogs",
-			VolumeSource: v1.VolumeSource{
-				EmptyDir: &v1.EmptyDirVolumeSource{
-					Medium: "",
-				},
-			},
-		})
-		podVolumes = append(podVolumes, v1.Volume{
-			Name: "brokeroptstore",
-			VolumeSource: v1.VolumeSource{
-				EmptyDir: &v1.EmptyDirVolumeSource{
-					Medium: "",
-				},
-			},
-		})
-	}*/
+	var logQuantity,storeQuantity  resource.Quantity
+	var err error
+	logQuantity, err = resource.ParseQuantity("5Gi")
+	if err != nil {
+		return nil
+	}
+	storeQuantity, err = resource.ParseQuantity("5Gi")
+	if err != nil {
+		return nil
+	}
+
+	volumeClaimTemplates := []v1.PersistentVolumeClaim{
+		nfsPersistentVolumeClaim("demo-nfs-storage", logQuantity, "brokerlogs"),
+		nfsPersistentVolumeClaim("demo-nfs-storage", storeQuantity,"brokerstore"),
+	}
 
 	ssReplicas := int32(cluster.Spec.MembersPerGroup)
 	ss := &apps.StatefulSet{
@@ -89,28 +86,10 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 					NodeSelector: cluster.Spec.NodeSelector,
 					//Affinity:     cluster.Spec.Affinity,
 					Containers: containers,
-					//Volumes: podVolumes,
-					Volumes: []v1.Volume{
-						{
-							Name: "brokeroptlogs",
-							VolumeSource: v1.VolumeSource{
-								HostPath: &v1.HostPathVolumeSource{
-									Path: fmt.Sprintf("/data/broker/logs/%d", index),
-								},
-							},
-						},
-						{
-							Name: "brokeroptstore",
-							VolumeSource: v1.VolumeSource{
-								HostPath: &v1.HostPathVolumeSource{
-									Path: fmt.Sprintf("/data/broker/store/%d", index),
-								},
-							},
-						},
-					},
 				},
 			},
 			ServiceName: fmt.Sprintf(cluster.Name+`-svc-%d`, index),
+			VolumeClaimTemplates: volumeClaimTemplates,
 		},
 	}
 	return ss
@@ -163,14 +142,34 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 		Command: []string{"./brokerStart.sh"},
 		VolumeMounts: []v1.VolumeMount{
 			{
-				Name:      "brokeroptlogs",
+				Name:      "brokerlogs",
 				MountPath: "/root/logs",
 			},
 			{
-				Name:      "brokeroptstore",
+				Name:      "brokerstore",
 				MountPath: "/root/store",
 			},
 		},
 	}
 
+}
+
+func nfsPersistentVolumeClaim(storageClassName string, quantity resource.Quantity, name string) v1.PersistentVolumeClaim{
+	annotations := map[string]string{
+		constants.BrokerVolumeStorageClass: storageClassName,
+	}
+	return v1.PersistentVolumeClaim{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+			Annotations: annotations,
+		},
+		Spec: v1.PersistentVolumeClaimSpec {
+			AccessModes: []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce},
+			Resources: v1.ResourceRequirements{
+				Requests: v1.ResourceList{
+					v1.ResourceStorage: quantity,
+				},
+			},
+		},
+	}
 }
