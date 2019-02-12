@@ -23,3 +23,11 @@ build-image:
 	pushd docker/rocketmq-operator && sh ./build-image.sh && popd
 .PHONY: build-image
 
+# Build the docker image
+#
+# Example:
+#   make build-image
+push:
+	pushd docker/rocketmq-operator && sh ./build-image.sh && popd
+.PHONY: push
+
