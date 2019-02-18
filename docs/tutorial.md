@@ -133,4 +133,17 @@ DefaultCluster    mybrokercluster-1-1     0     192.168.122.146:10911  V4_3_0   
 
 ```
 
+### Delete the cluster
 
+#### 1) Delete the BrokerCluster CRD object
+The corresponding StatefulSets and Pods will also be deleted automatically.
+```
+kubectl delete -f deploy/04-cluster-2m.yaml
+```
+
+#### 2) Delete the BrokerCluster CRD object
+
+```
+kubectl delete -f deploy/03-deploymentWithConfig.yaml
+docker run --name test-rocketmq-operator -ti --entrypoint /bin/sh rocketmqinc/rocketmq-operator:0.1.2-dev 
+```

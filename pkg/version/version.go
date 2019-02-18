@@ -16,7 +16,7 @@ limitations under the License.
 
 package version
 
-var buildVersion = "0.1"
+var buildVersion = "0.2"
 
 // GetBuildVersion returns the Rocketmq Operator build version
 func GetBuildVersion() string {
