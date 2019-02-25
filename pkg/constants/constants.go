@@ -26,6 +26,6 @@ const BrokerRoleMaster = "master"
 
 const BrokerRoleSlave = "slave"
 
-const BrokerVolumeStorageClass  = "volume.beta.kubernetes.io/storage-class"
+const BrokerVolumeStorageClass = "volume.beta.kubernetes.io/storage-class"
 
 const DefaultStorageClassName = "standard"
