@@ -24,12 +24,13 @@ type BrokerClusterSpec struct {
 	NameServers         string                        `json:"nameServers"`
 	AllMaster           bool                          `json:"allMaster`
 	ReplicationMode     string                        `json:"replicationMode`
-	GroupReplica        int32                         `json:"groupReplica, omitempty"`
-	MembersPerGroup     int32                         `json:"membersPerGroup, omitempty"`
-	Properties          map[string]string             `json:"properties, omitempty"`
-	NodeSelector        map[string]string             `json:"nodeSelector, omitempty"`
-	Affinity            *corev1.Affinity              `json:"affinity, omitempty"`
-	VolumeClaimTemplate *corev1.PersistentVolumeClaim `json:"volumeClaimTemplate, omitempty"`
+	GroupReplica        int32                         `json:"groupReplica,omitempty"`
+	MembersPerGroup     int32                         `json:"membersPerGroup,omitempty"`
+	StorageClassName    string                        `json:"storageClassName,omitempty"`
+	Properties          map[string]string             `json:"properties,omitempty"`
+	NodeSelector        map[string]string             `json:"nodeSelector,omitempty"`
+	Affinity            *corev1.Affinity              `json:"affinity,omitempty"`
+	VolumeClaimTemplate *corev1.PersistentVolumeClaim `json:"volumeClaimTemplate,omitempty"`
 	Config              *corev1.LocalObjectReference  `json:"config,omitempty"`
 }
 

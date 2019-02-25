@@ -11,3 +11,4 @@ spec:
   replicationMode: SYNC
   groupReplica: 2
   membersPerGroup: 2
+  storageClassName: demo-nfs-storage

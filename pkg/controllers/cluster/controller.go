@@ -144,7 +144,7 @@ func NewBrokerController(
 	resyncPeriod time.Duration,
 	namespace string,
 ) *BrokerController {
-	opscheme.AddToScheme(scheme.Scheme) // TODO: This shouldn't be done here I don't think.
+	opscheme.AddToScheme(scheme.Scheme)
 
 	// Create event broadcaster.
 	glog.V(4).Info("Creating event broadcaster")

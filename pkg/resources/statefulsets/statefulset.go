@@ -53,9 +53,13 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 		return nil
 	}
 
+	storageClassNmae := cluster.Spec.StorageClassName
+	if storageClassNmae == "" {
+		storageClassNmae = constants.DefaultStorageClassName
+	}
 	volumeClaimTemplates := []v1.PersistentVolumeClaim{
-		nfsPersistentVolumeClaim("demo-nfs-storage", logQuantity, "brokerlogs"),
-		nfsPersistentVolumeClaim("demo-nfs-storage", storeQuantity,"brokerstore"),
+		nfsPersistentVolumeClaim(storageClassNmae, logQuantity, "brokerlogs"),
+		nfsPersistentVolumeClaim(storageClassNmae, storeQuantity, "brokerstore"),
 	}
 
 	ssReplicas := int32(cluster.Spec.MembersPerGroup)
