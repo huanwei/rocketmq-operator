@@ -19,8 +19,21 @@ package v1alpha1
 import corev1 "k8s.io/api/core/v1"
 import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+type ResourceRequirement struct {
+	CPU          string `json:"cpu,omitempty"`
+	Memory       string `json:"memory,omitempty"`
+	LogStorage   string `json:"logStorage,omitempty"`
+	StoreStorage string `json:"storeStorage,omitempty"`
+}
+
+type ContainerSpec struct {
+	BrokerImage string               `json:"brokerImage"`
+	Requests    *ResourceRequirement `json:"requests,omitempty"`
+	Limits      *ResourceRequirement `json:"limits,omitempty"`
+}
+
 type BrokerClusterSpec struct {
-	BrokerImage         string                        `json:"brokerImage"`
+	ContainerSpec
 	NameServers         string                        `json:"nameServers"`
 	AllMaster           bool                          `json:"allMaster`
 	ReplicationMode     string                        `json:"replicationMode`

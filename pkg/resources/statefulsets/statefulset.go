@@ -18,12 +18,13 @@ package statefulsets
 
 import (
 	"fmt"
+	"github.com/golang/glog"
 	"github.com/huanwei/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	"github.com/huanwei/rocketmq-operator/pkg/constants"
 	apps "k8s.io/api/apps/v1"
 	"k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"strconv"
 )
@@ -42,15 +43,19 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 		constants.BrokerRoleLabel:    brokerRole,
 	}
 
-	var logQuantity,storeQuantity  resource.Quantity
+	var logQuantity, storeQuantity resource.Quantity
 	var err error
-	logQuantity, err = resource.ParseQuantity("5Gi")
-	if err != nil {
-		return nil
-	}
-	storeQuantity, err = resource.ParseQuantity("5Gi")
-	if err != nil {
-		return nil
+	if cluster.Spec.ContainerSpec.Requests != nil {
+		logSize := cluster.Spec.ContainerSpec.Requests.LogStorage
+		logQuantity, err = resource.ParseQuantity(logSize)
+		if err != nil {
+			return nil
+		}
+		storeSize := cluster.Spec.ContainerSpec.Requests.StoreStorage
+		storeQuantity, err = resource.ParseQuantity(storeSize)
+		if err != nil {
+			return nil
+		}
 	}
 
 	storageClassNmae := cluster.Spec.StorageClassName
@@ -92,7 +97,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 					Containers: containers,
 				},
 			},
-			ServiceName: fmt.Sprintf(cluster.Name+`-svc-%d`, index),
+			ServiceName:          fmt.Sprintf(cluster.Name+`-svc-%d`, index),
 			VolumeClaimTemplates: volumeClaimTemplates,
 		},
 	}
@@ -104,7 +109,7 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 	return v1.Container{
 		Name:            "broker",
 		ImagePullPolicy: "Always",
-		Image:           cluster.Spec.BrokerImage,
+		Image:           cluster.Spec.ContainerSpec.BrokerImage,
 		Ports: []v1.ContainerPort{
 			{
 				ContainerPort: 10909,
@@ -154,20 +159,85 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 				MountPath: "/root/store",
 			},
 		},
+		Resources: resourceRequirement(cluster.Spec.ContainerSpec, defaultRequests()),
 	}
 
 }
 
-func nfsPersistentVolumeClaim(storageClassName string, quantity resource.Quantity, name string) v1.PersistentVolumeClaim{
+func resourceRequirement(spec v1alpha1.ContainerSpec, defaultRequests ...v1.ResourceRequirements) v1.ResourceRequirements {
+	rr := v1.ResourceRequirements{}
+	if len(defaultRequests) > 0 {
+		defaultRequest := defaultRequests[0]
+		rr.Requests = make(map[v1.ResourceName]resource.Quantity)
+		rr.Requests[v1.ResourceCPU] = defaultRequest.Requests[v1.ResourceCPU]
+		rr.Requests[v1.ResourceMemory] = defaultRequest.Requests[v1.ResourceMemory]
+		rr.Limits = make(map[v1.ResourceName]resource.Quantity)
+		rr.Limits[v1.ResourceCPU] = defaultRequest.Limits[v1.ResourceCPU]
+		rr.Limits[v1.ResourceMemory] = defaultRequest.Limits[v1.ResourceMemory]
+	}
+	if spec.Requests != nil {
+		if rr.Requests == nil {
+			rr.Requests = make(map[v1.ResourceName]resource.Quantity)
+		}
+		if spec.Requests.CPU != "" {
+			if q, err := resource.ParseQuantity(spec.Requests.CPU); err != nil {
+				glog.Errorf("failed to parse CPU resource %s to quantity: %v", spec.Requests.CPU, err)
+			} else {
+				rr.Requests[v1.ResourceCPU] = q
+			}
+		}
+		if spec.Requests.Memory != "" {
+			if q, err := resource.ParseQuantity(spec.Requests.Memory); err != nil {
+				glog.Errorf("failed to parse memory resource %s to quantity: %v", spec.Requests.Memory, err)
+			} else {
+				rr.Requests[v1.ResourceMemory] = q
+			}
+		}
+	}
+	if spec.Limits != nil {
+		if rr.Limits == nil {
+			rr.Limits = make(map[v1.ResourceName]resource.Quantity)
+		}
+		if spec.Limits.CPU != "" {
+			if q, err := resource.ParseQuantity(spec.Limits.CPU); err != nil {
+				glog.Errorf("failed to parse CPU resource %s to quantity: %v", spec.Limits.CPU, err)
+			} else {
+				rr.Limits[v1.ResourceCPU] = q
+			}
+		}
+		if spec.Limits.Memory != "" {
+			if q, err := resource.ParseQuantity(spec.Limits.Memory); err != nil {
+				glog.Errorf("failed to parse memory resource %s to quantity: %v", spec.Limits.Memory, err)
+			} else {
+				rr.Limits[v1.ResourceMemory] = q
+			}
+		}
+	}
+	return rr
+
+}
+
+func defaultRequests() v1.ResourceRequirements {
+	rr := v1.ResourceRequirements{}
+	rr.Requests = make(map[v1.ResourceName]resource.Quantity)
+	rr.Limits = make(map[v1.ResourceName]resource.Quantity)
+	rr.Requests[v1.ResourceCPU] = resource.MustParse("1000m")
+	rr.Requests[v1.ResourceMemory] = resource.MustParse("1000Mi")
+	rr.Limits[v1.ResourceCPU] = resource.MustParse("2000m")
+	rr.Limits[v1.ResourceMemory] = resource.MustParse("2000Mi")
+	return rr
+}
+
+func nfsPersistentVolumeClaim(storageClassName string, quantity resource.Quantity, name string) v1.PersistentVolumeClaim {
 	annotations := map[string]string{
 		constants.BrokerVolumeStorageClass: storageClassName,
 	}
 	return v1.PersistentVolumeClaim{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:        name,
 			Annotations: annotations,
 		},
-		Spec: v1.PersistentVolumeClaimSpec {
+		Spec: v1.PersistentVolumeClaimSpec{
 			AccessModes: []v1.PersistentVolumeAccessMode{v1.ReadWriteOnce},
 			Resources: v1.ResourceRequirements{
 				Requests: v1.ResourceList{

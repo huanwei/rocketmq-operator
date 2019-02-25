@@ -32,8 +32,8 @@ const (
 // For example a user can choose to omit the version
 // and number of members.
 func (c *BrokerCluster) EnsureDefaults() *BrokerCluster {
-	if c.Spec.BrokerImage == "" {
-		c.Spec.BrokerImage = defaultBrokerImage
+	if c.Spec.ContainerSpec.BrokerImage == "" {
+		c.Spec.ContainerSpec.BrokerImage = defaultBrokerImage
 	}
 	if c.Spec.GroupReplica == 0 {
 		c.Spec.GroupReplica = defaultGroups
