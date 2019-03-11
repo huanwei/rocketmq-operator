@@ -22,6 +22,7 @@ import (
 	apps "k8s.io/api/apps/v1"
 	"testing"
 	"unsafe"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func TestNewStatefulSet(t *testing.T) {
@@ -49,4 +50,9 @@ func TestNewStatefulSet(t *testing.T) {
 			"Get result:\n%s\n",
 			i+1, *str)
 	}
+}
+
+func TestParseQuantity(t *testing.T){
+	q, _ := resource.ParseQuantity("2Gi")
+	t.Logf("Get result: %v", q)
 }
