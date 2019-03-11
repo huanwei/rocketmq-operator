@@ -4,6 +4,8 @@ The RoecketMQ Operator creates, operates and scales self-healing RocketMQ cluste
 
 ** This is currently in v1alpha. **
 
+** Use this operator in production with Kubernetes [storageClass](docs/storageClass.md) **
+
 ## Getting started
 
 See the [tutorial](docs/tutorial.md) for a quick-start guide.
@@ -30,4 +32,3 @@ Copyright The Kubernetes Authors.
 `rocketmq-operator` is licensed under the Apache License 2.0. 
 
 See [LICENSE](LICENSE) for more details.
-
