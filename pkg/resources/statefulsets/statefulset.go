@@ -45,16 +45,25 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 
 	var logQuantity, storeQuantity resource.Quantity
 	var err error
+	logQuantity = defaultStorageQuantity()
+	storeQuantity = defaultStorageQuantity()
+
 	if cluster.Spec.ContainerSpec.Requests != nil {
 		logSize := cluster.Spec.ContainerSpec.Requests.LogStorage
-		logQuantity, err = resource.ParseQuantity(logSize)
-		if err != nil {
-			return nil
+		if logSize == "" {
+			logQuantity, err = resource.ParseQuantity(logSize)
+			if err != nil {
+				glog.Errorf("failed to parse log size %s to quantity: %v", logSize, err)
+				return nil
+			}
 		}
 		storeSize := cluster.Spec.ContainerSpec.Requests.StoreStorage
-		storeQuantity, err = resource.ParseQuantity(storeSize)
-		if err != nil {
-			return nil
+		if storeSize == "" {
+			storeQuantity, err = resource.ParseQuantity(storeSize)
+			if err != nil {
+				glog.Errorf("failed to parse store size %s to quantity: %v", storeSize, err)
+				return nil
+			}
 		}
 	}
 
@@ -226,6 +235,12 @@ func defaultRequests() v1.ResourceRequirements {
 	rr.Limits[v1.ResourceCPU] = resource.MustParse("2000m")
 	rr.Limits[v1.ResourceMemory] = resource.MustParse("2000Mi")
 	return rr
+}
+
+func defaultStorageQuantity() resource.Quantity{
+	var q resource.Quantity
+	q, _ = resource.ParseQuantity("5Gi")
+	return q
 }
 
 func nfsPersistentVolumeClaim(storageClassName string, quantity resource.Quantity, name string) v1.PersistentVolumeClaim {
