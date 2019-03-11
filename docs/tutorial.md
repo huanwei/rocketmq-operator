@@ -133,9 +133,13 @@ DefaultCluster    mybrokercluster-1-1     0     192.168.122.146:10911  V4_3_0   
 
 ```
 
-### Uninstall the RocketMQ cluster
+### Uninstall the RocketMQ cluster or destroy everything
 
 ```
-cd deploy
-kubectl delete -f .
+kubectl delete -f deploy/04-cluster-2m-2s.yaml
+kubectl delete -f deploy/03-deploymentWithConfig.yaml
+kubectl delete -f deploy/02-rbac.yaml
+kubectl delete -f deploy/01-resources.yaml
+kubectl delete -f deploy/00-namesrv.yaml
+kubectl delete ns rocketmq-operator
 ```
