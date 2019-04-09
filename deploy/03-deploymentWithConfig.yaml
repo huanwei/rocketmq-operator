@@ -39,7 +39,7 @@ spec:
       containers:
       - name: rocketmq-operator-controller
         imagePullPolicy: Always
-        image: rocketmqinc/rocketmq-operator:0.1.2-dev
+        image: huanwei/rocketmq-operator:0.1.2
         ports:
         - containerPort: 10254
         volumeMounts:
