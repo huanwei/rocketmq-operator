@@ -383,26 +383,10 @@ func (m *BrokerController) syncHandler(key string) error {
 		if err := m.ensureBrokerVersion(cluster, ss); err != nil {
 			return errors.Wrap(err, "ensuring RocketMQ broker version")
 		}
-		/*expected := cluster.Spec.ContainerSpec.BrokerImage
-		actual := ss.Spec.Template.Spec.Containers[0].Image
-		if expected != actual {
-			glog.V(4).Infof("find StatefulSet expected image %s, actual image %s", expected, actual)
-			updated := ss.DeepCopy()
-			updated.Spec.Template.Spec.Containers[0].Image = expected
-			updated.Spec.UpdateStrategy = apps.StatefulSetUpdateStrategy{
-				Type: apps.RollingUpdateStatefulSetStrategyType,
-			}
-			//ss = statefulsets.NewStatefulSet(cluster, index)
-			err := m.statefulSetControl.Patch(ss, updated)
-			if err != nil {
-				return errors.Wrap(err, "patching StatefulSet")
-			}
-		}*/
 
 		// If this number of the members on the Cluster does not equal the
 		// current desired replicas on the StatefulSet, we should update the
 		// StatefulSet resource.
-
 		if cluster.Spec.MembersPerGroup != *ss.Spec.Replicas {
 			glog.V(4).Infof("Updating %q: membersPerGroup=%d statefulSetReplicas=%d",
 				nsName, cluster.Spec.MembersPerGroup, ss.Spec.Replicas)
