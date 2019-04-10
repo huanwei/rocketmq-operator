@@ -1,4 +1,4 @@
-FROM rocketmqinc/rocketmq:4.3.0
+FROM rocketmqinc/rocketmq:4.4.0
 
 USER root
 COPY brokerGenConfig.sh brokerStart.sh ${ROCKETMQ_HOME}/bin/

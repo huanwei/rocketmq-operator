@@ -17,7 +17,7 @@ limitations under the License.
 package v1alpha1
 
 const (
-	defaultBrokerImage     = "huanwei/rocketmq-broker:4.3.0-operator"
+	defaultBrokerImage     = "huanwei/rocketmq-broker-k8s:4.3.0"
 	defaultGroups          = 2
 	defaultMembersPerGroup = 2
 
