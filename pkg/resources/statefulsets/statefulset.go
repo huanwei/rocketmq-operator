@@ -106,6 +106,9 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 					Containers: containers,
 				},
 			},
+			UpdateStrategy: apps.StatefulSetUpdateStrategy{
+				Type: apps.RollingUpdateStatefulSetStrategyType,
+			},
 			ServiceName:          fmt.Sprintf(cluster.Name+`-svc-%d`, index),
 			VolumeClaimTemplates: volumeClaimTemplates,
 		},
@@ -237,7 +240,7 @@ func defaultRequests() v1.ResourceRequirements {
 	return rr
 }
 
-func defaultStorageQuantity() resource.Quantity{
+func defaultStorageQuantity() resource.Quantity {
 	var q resource.Quantity
 	q, _ = resource.ParseQuantity("5Gi")
 	return q

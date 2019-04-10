@@ -377,7 +377,27 @@ func (m *BrokerController) syncHandler(key string) error {
 			m.recorder.Event(cluster, corev1.EventTypeWarning, ErrResourceExists, msg)
 			return fmt.Errorf(msg)
 		}
-		// todo: Upgrade the required component resources for the current Operator version.
+
+		// Upgrade the RocketMQ broker version if required.
+
+		if err := m.ensureBrokerVersion(cluster, ss); err != nil {
+			return errors.Wrap(err, "ensuring RocketMQ broker version")
+		}
+		/*expected := cluster.Spec.ContainerSpec.BrokerImage
+		actual := ss.Spec.Template.Spec.Containers[0].Image
+		if expected != actual {
+			glog.V(4).Infof("find StatefulSet expected image %s, actual image %s", expected, actual)
+			updated := ss.DeepCopy()
+			updated.Spec.Template.Spec.Containers[0].Image = expected
+			updated.Spec.UpdateStrategy = apps.StatefulSetUpdateStrategy{
+				Type: apps.RollingUpdateStatefulSetStrategyType,
+			}
+			//ss = statefulsets.NewStatefulSet(cluster, index)
+			err := m.statefulSetControl.Patch(ss, updated)
+			if err != nil {
+				return errors.Wrap(err, "patching StatefulSet")
+			}
+		}*/
 
 		// If this number of the members on the Cluster does not equal the
 		// current desired replicas on the StatefulSet, we should update the
@@ -408,6 +428,25 @@ func (m *BrokerController) syncHandler(key string) error {
 	}
 
 	m.recorder.Event(cluster, corev1.EventTypeNormal, SuccessSynced, MessageResourceSynced)
+	return nil
+}
+
+// ensureBrokerVersion updates broker image if required.
+func (m *BrokerController) ensureBrokerVersion(cluster *v1alpha1.BrokerCluster, ss *apps.StatefulSet) error {
+	expected := cluster.Spec.ContainerSpec.BrokerImage
+	actual := ss.Spec.Template.Spec.Containers[0].Image
+	if expected != actual {
+		updated := ss.DeepCopy()
+		updated.Spec.Template.Spec.Containers[0].Image = expected
+		updated.Spec.UpdateStrategy = apps.StatefulSetUpdateStrategy{
+			Type: apps.RollingUpdateStatefulSetStrategyType,
+		}
+		glog.V(4).Infof("find StatefulSet expected image %s, actual image %s", expected, actual)
+		err := m.statefulSetControl.Patch(ss, updated)
+		if err != nil {
+			return errors.Wrap(err, "patching StatefulSet")
+		}
+	}
 	return nil
 }
 

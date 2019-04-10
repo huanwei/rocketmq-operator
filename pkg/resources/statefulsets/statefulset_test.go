@@ -20,9 +20,9 @@ import (
 	"encoding/json"
 	"github.com/huanwei/rocketmq-operator/pkg/apis/rocketmq/v1alpha1"
 	apps "k8s.io/api/apps/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 	"testing"
 	"unsafe"
-	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func TestNewStatefulSet(t *testing.T) {
@@ -52,7 +52,7 @@ func TestNewStatefulSet(t *testing.T) {
 	}
 }
 
-func TestParseQuantity(t *testing.T){
+func TestParseQuantity(t *testing.T) {
 	q, _ := resource.ParseQuantity("2Gi")
 	t.Logf("Get result: %v", q)
 }
