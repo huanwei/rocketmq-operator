@@ -37,5 +37,5 @@ spec:
       - name: namesrvstore
         hostPath:
           path: /data/namesrv/store
-      nodeSelector:
-           rocketmq-operator: "on"
+      #nodeSelector:
+           #rocketmq-operator: "on"
