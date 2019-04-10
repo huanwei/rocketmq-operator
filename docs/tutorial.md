@@ -143,3 +143,60 @@ kubectl delete -f deploy/01-resources.yaml
 kubectl delete -f deploy/00-namesrv.yaml
 kubectl delete ns rocketmq-operator
 ```
+
+### Scale up/Scale down the RocketMQ broker Cluster
+
+#### 1) For example, edit `deploy/04-cluster-2m-2s.yaml`, set `groupReplica` and `membersPerGroup` as 3, so totally the broker cluster will have 9 pods running.
+```
+groupReplica: 3
+membersPerGroup: 3
+```
+
+#### 2) And replace the BrokerCluster resource:
+```
+kubectl replace -f deploy/04-cluster-2m-2s.yaml
+```
+
+#### 3) Check if the cluster scaled from 4 pods to 9 pods, and wait until it success:
+```
+watch kubectl -n rocketmq-operator get pods -owide
+```
+
+We can find the scaled result as following:
+
+```
+[root@k8s-master ~]# kubectl -n rocketmq-operator get pods -owide
+NAME                                READY     STATUS    RESTARTS   AGE       IP                NODE
+mybrokercluster-0-0                 1/1       Running   0          50m       192.168.122.145   k8s-node4
+mybrokercluster-0-1                 1/1       Running   0          52m       192.168.169.203   k8s-node2
+mybrokercluster-0-2                 1/1       Running   0          44m       192.168.196.41    k8s-node5
+mybrokercluster-1-0                 1/1       Running   0          51m       192.168.122.146   k8s-node4
+mybrokercluster-1-1                 1/1       Running   0          52m       192.168.196.2     k8s-node5
+mybrokercluster-1-2                 1/1       Running   0          44m       192.168.36.179    k8s-node1
+mybrokercluster-2-0                 1/1       Running   0          44m       192.168.108.37    k8s-node3
+mybrokercluster-2-1                 1/1       Running   0          43m       192.168.122.147   k8s-node4
+mybrokercluster-2-2                 1/1       Running   0          43m       192.168.196.51    k8s-node5
+rocketmq-namesrv-5f685dbc8f-dcfg2   1/1       Running   0          6h        10.10.103.184     k8s-node2
+rocketmq-namesrv-5f685dbc8f-mspjg   1/1       Running   0          6h        10.10.103.181     k8s-node4
+rocketmq-operator-dcd764554-mff5c   1/1       Running   0          54m       192.168.122.144   k8s-node4
+```
+
+### Upgrade RocketMQ broker version
+
+#### 1) For example, edit `deploy/04-cluster-2m-2s.yaml`, set `brokerImage` as from "4.3.2" to "4.4.0":
+```
+brokerImage: huanwei/rocketmq-broker-k8s:4.4.0
+
+```
+
+#### 2) And replace the BrokerCluster resource:
+```
+kubectl replace -f deploy/04-cluster-2m-2s.yaml
+```
+
+#### 3) Validate the new StatefulSets created by RocketMQ Operator:
+
+```
+kubectl -n rocketmq-operator get statefulset mybrokercluster-0 -o yaml
+```
+We can find the updated image version in `spec.template.spec.containers[0].image`.
