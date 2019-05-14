@@ -4,6 +4,8 @@ The RoecketMQ Operator creates, operates and scales self-healing RocketMQ cluste
 
 ** This is currently in v1alpha. **
 
+** By default, RoecketMQ Operator creates the storage with EmptyDir.
+
 ** Use this operator in production with Kubernetes [storageClass](docs/storageClass.md) **
 
 ## Getting started
