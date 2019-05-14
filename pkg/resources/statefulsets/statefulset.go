@@ -50,7 +50,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 
 	if cluster.Spec.ContainerSpec.Requests != nil {
 		logSize := cluster.Spec.ContainerSpec.Requests.LogStorage
-		if logSize == "" {
+		if logSize != "" {
 			logQuantity, err = resource.ParseQuantity(logSize)
 			if err != nil {
 				glog.Errorf("failed to parse log size %s to quantity: %v", logSize, err)
@@ -58,7 +58,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 			}
 		}
 		storeSize := cluster.Spec.ContainerSpec.Requests.StoreStorage
-		if storeSize == "" {
+		if storeSize != "" {
 			storeQuantity, err = resource.ParseQuantity(storeSize)
 			if err != nil {
 				glog.Errorf("failed to parse store size %s to quantity: %v", storeSize, err)
