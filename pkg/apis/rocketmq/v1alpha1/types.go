@@ -39,6 +39,7 @@ type BrokerClusterSpec struct {
 	ReplicationMode     string                        `json:"replicationMode`
 	GroupReplica        int32                         `json:"groupReplica,omitempty"`
 	MembersPerGroup     int32                         `json:"membersPerGroup,omitempty"`
+	EmptyDir            bool                          `json:"emptyDir,omitempty"`
 	StorageClassName    string                        `json:"storageClassName,omitempty"`
 	Properties          map[string]string             `json:"properties,omitempty"`
 	NodeSelector        map[string]string             `json:"nodeSelector,omitempty"`

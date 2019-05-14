@@ -43,6 +43,51 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 		constants.BrokerRoleLabel:    brokerRole,
 	}
 
+	podSpec := v1.PodSpec{
+		NodeSelector: cluster.Spec.NodeSelector,
+		Containers:   containers,
+	}
+
+	if cluster.Spec.EmptyDir {
+		podSpec = v1.PodSpec{
+			NodeSelector: cluster.Spec.NodeSelector,
+			Containers:   containers,
+			Volumes: []v1.Volume{
+				{
+					Name: "brokerlogs",
+					VolumeSource: v1.VolumeSource{
+						EmptyDir: &v1.EmptyDirVolumeSource{},
+					},
+				},
+				{
+					Name: "brokerstore",
+					VolumeSource: v1.VolumeSource{
+						EmptyDir: &v1.EmptyDirVolumeSource{},
+					},
+				},
+			},
+		}
+	}
+
+	ssReplicas := int32(cluster.Spec.MembersPerGroup)
+
+	statefulsetSpec := apps.StatefulSetSpec{
+		Replicas: &ssReplicas,
+		Selector: &metav1.LabelSelector{
+			MatchLabels: podLabels,
+		},
+		Template: v1.PodTemplateSpec{
+			ObjectMeta: metav1.ObjectMeta{
+				Labels: podLabels,
+			},
+			Spec: podSpec,
+		},
+		UpdateStrategy: apps.StatefulSetUpdateStrategy{
+			Type: apps.RollingUpdateStatefulSetStrategyType,
+		},
+		ServiceName: fmt.Sprintf(cluster.Name+`-svc-%d`, index),
+	}
+
 	var logQuantity, storeQuantity resource.Quantity
 	var err error
 	logQuantity = defaultStorageQuantity()
@@ -50,7 +95,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 
 	if cluster.Spec.ContainerSpec.Requests != nil {
 		logSize := cluster.Spec.ContainerSpec.Requests.LogStorage
-		if logSize == "" {
+		if logSize != "" {
 			logQuantity, err = resource.ParseQuantity(logSize)
 			if err != nil {
 				glog.Errorf("failed to parse log size %s to quantity: %v", logSize, err)
@@ -58,7 +103,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 			}
 		}
 		storeSize := cluster.Spec.ContainerSpec.Requests.StoreStorage
-		if storeSize == "" {
+		if storeSize != "" {
 			storeQuantity, err = resource.ParseQuantity(storeSize)
 			if err != nil {
 				glog.Errorf("failed to parse store size %s to quantity: %v", storeSize, err)
@@ -76,7 +121,26 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 		nfsPersistentVolumeClaim(storageClassNmae, storeQuantity, "brokerstore"),
 	}
 
-	ssReplicas := int32(cluster.Spec.MembersPerGroup)
+	if !cluster.Spec.EmptyDir && storageClassNmae != "" {
+		statefulsetSpec = apps.StatefulSetSpec{
+			Replicas: &ssReplicas,
+			Selector: &metav1.LabelSelector{
+				MatchLabels: podLabels,
+			},
+			Template: v1.PodTemplateSpec{
+				ObjectMeta: metav1.ObjectMeta{
+					Labels: podLabels,
+				},
+				Spec: podSpec,
+			},
+			UpdateStrategy: apps.StatefulSetUpdateStrategy{
+				Type: apps.RollingUpdateStatefulSetStrategyType,
+			},
+			ServiceName:          fmt.Sprintf(cluster.Name+`-svc-%d`, index),
+			VolumeClaimTemplates: volumeClaimTemplates,
+		}
+	}
+
 	ss := &apps.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: cluster.Namespace,
@@ -90,28 +154,7 @@ func NewStatefulSet(cluster *v1alpha1.BrokerCluster, index int) *apps.StatefulSe
 			},
 			Labels: podLabels,
 		},
-		Spec: apps.StatefulSetSpec{
-			Replicas: &ssReplicas,
-			Selector: &metav1.LabelSelector{
-				MatchLabels: podLabels,
-			},
-			Template: v1.PodTemplateSpec{
-				ObjectMeta: metav1.ObjectMeta{
-					Labels: podLabels,
-				},
-				Spec: v1.PodSpec{
-					//ServiceAccountName: "rocketmq-operator",
-					NodeSelector: cluster.Spec.NodeSelector,
-					//Affinity:     cluster.Spec.Affinity,
-					Containers: containers,
-				},
-			},
-			UpdateStrategy: apps.StatefulSetUpdateStrategy{
-				Type: apps.RollingUpdateStatefulSetStrategyType,
-			},
-			ServiceName:          fmt.Sprintf(cluster.Name+`-svc-%d`, index),
-			VolumeClaimTemplates: volumeClaimTemplates,
-		},
+		Spec: statefulsetSpec,
 	}
 	return ss
 
