@@ -207,11 +207,11 @@ func brokerContainer(cluster *v1alpha1.BrokerCluster, index int) v1.Container {
 		VolumeMounts: []v1.VolumeMount{
 			{
 				Name:      "brokerlogs",
-				MountPath: "/home/rocketmq/logs",
+				MountPath: "/root/logs/rocketmqlogs",
 			},
 			{
 				Name:      "brokerstore",
-				MountPath: "/home/rocketmq/store",
+				MountPath: "/root/store",
 			},
 		},
 		Resources: resourceRequirement(cluster.Spec.ContainerSpec, defaultRequests()),
